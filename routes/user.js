@@ -67,7 +67,7 @@ router.get('/logout', (req, res, next) => {
     }
   });
 
-router.get('/change', (req, res) => {
+router.get('/change', auth, (req, res) => {
     res.sendFile('/change.html', {root: './public'})
 })
 
