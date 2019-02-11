@@ -1,0 +1,35 @@
+.form {
+    width: 50%;
+    height: 30vh;
+    background-color: lightgray;
+}
+
+.form input {
+    width: 80%;
+    height: 2em;
+    margin: 10px;
+    border-radius: 3px;
+}
+
+.form button {
+    width: 30%;
+    height: 50px;
+    background-color: aquamarine;
+    font-weight: 700;
+    border-radius: 5px;
+    border-color: blue;
+    margin-top: 20px;
+}
+
+.Home {
+    height: 100%;
+    width: 100%;
+    color: white;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+}
+
+.Home a {
+    margin: 20px;
+}

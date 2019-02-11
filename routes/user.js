@@ -14,48 +14,43 @@ const auth = (req, res, next) => {
 
 router.get('/', (req, res) => {
     if(req.session && req.session.user) {
-        res.sendFile('/home.html', { root: './public' })
+        res.json({email: req.session.user, valid: true, message: null})
     } else {
-        res.sendFile('/index.html', { root: './' })
+        res.json({email: null, valid: false, message: 'please log in'})
     }    
 })
 
 router.post('/', (req, res) => {
-    const userData = req.body;
+    const userData = req.body.user;
     User.findOne({email: userData.email})
         .then(user => {
             if(user.password === userData.password) {
                 req.session.user = userData.email;
-                res.redirect('/home')
-            } else if ( user.length <= 0 ){
-                res.redirect('/create')
+                res.json(user)
             } else {
-                res.send('password was incorrect')
+                res.json({valid: false, message: 'wrong password'})
             }
         })
-        .catch(err => res.sendFile('/create.html', { root: './public' }))
-})
-
-router.get('/home', auth, (req, res) => {
-    res.sendFile('/home.html', { root: './public' })
+        .catch(err => res.json({valid: false, message: 'user doesn\'t exist'}))
 })
 
 router.get('/create', auth, (req, res) => {
-    res.sendFile('/create.html', { root: './public' })
+    res.json({message: 'create a login'})
 })
 
 router.post('/create', (req, res) => {
     const newUser = new User({
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        valid: true,
+        message: null
     });
 
-    newUser.save().then( () => res.redirect('/'))
+    newUser.save().then( (user) => res.json(user))
 })
 
 router.get('/logout', (req, res, next) => {
     if (req.session) {
-      // delete session object
       req.session.destroy((err) => {
         if(err) {
           return next(err);
@@ -66,16 +61,20 @@ router.get('/logout', (req, res, next) => {
     }
   });
 
-router.get('/change', auth, (req, res) => {
-    res.sendFile('/change.html', {root: './public'})
-})
+// router.get('/change', auth, (req, res) => {
+//     res.sendFile('/change.html', {root: './public'})
+// })
 
 router.post('/change', (req, res) => {
-    const oldData = req.body.oldEmail
-    const newData = { email: req.body.newEmail, password: req.body.newPassword };
+    const oldData = req.body.user.email
+    console.log(req.body)
+    const newData = { email: req.body.newUserName, password: req.body.newPassword };
+    if(newData.email === null) {
+        newData.email = req.body.user.email;
+    }
     User.findOneAndUpdate({email: oldData}, { $set: {"email": newData.email, "password": newData.password}})
-        .then(() => res.redirect('/'))
-        .catch(err => res.send(err));
+        .then(() => res.redirect('/logout'))
+        .catch(err => res.json({valid: false, message: err}));
 })
 
 module.exports = router;
