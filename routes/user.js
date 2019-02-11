@@ -13,11 +13,10 @@ const auth = (req, res, next) => {
 }
 
 router.get('/', (req, res) => {
-    console.log(req.session)
     if(req.session && req.session.user) {
         res.sendFile('/home.html', { root: './public' })
     } else {
-        res.sendFile('/index.html', { root: './public' })
+        res.sendFile('/index.html', { root: './' })
     }    
 })
 
