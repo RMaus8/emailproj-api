@@ -18,10 +18,21 @@ class App extends Component {
   }
 
   componentDidMount () {
-    axios.get('/').then(res => {
-      console.log(res.data)
-      this.setState({valid: res.data.valid})
-    })
+    const valid = localStorage.getItem('valid') === 'true'
+    const email = localStorage.getItem('email')
+    const pass = localStorage.getItem('password')
+    console.log(valid)
+    if(valid) {
+      this.setState({user: {
+        email: email,
+        password: pass
+      },
+        valid: valid}, () => this.goHome())    
+    }    
+  }
+
+  goHome = () => {
+    this.props.history.push('/home')
   }
 
   newEmail = event => {
@@ -29,7 +40,7 @@ class App extends Component {
       ...this.state,
       newUserName: event.target.value
     }
-    this.setState({data})
+    this.setState({...data}, () => console.log(this.state))
   }
 
   newPassword = event => {
@@ -37,7 +48,7 @@ class App extends Component {
       ...this.state,
       newPassword: event.target.value
     }
-    this.setState({data})
+    this.setState({...data}, () => console.log(this.state))
   }
 
   onChangeHandler = event => {
@@ -55,7 +66,8 @@ class App extends Component {
     }
     axios.post('/change', newUser)
       .then(res => {
-        this.props.history.push('/home')
+        alert(res.data.message);
+        this.logout()
       })
   }
 
@@ -66,7 +78,7 @@ class App extends Component {
     }
     axios.post('/create', newUser.user)
       .then(res => {
-        this.setState({user: {...res.data}})
+        this.setState({user: {...res.data}, message:''})
         this.props.history.push('/home');
       })
   }
@@ -80,12 +92,27 @@ class App extends Component {
     axios.post('/', newUser)
       .then(res => {
         if(res.data.valid || res.data.email) {        
-          this.setState({valid: true, message:'user logged in'})       
-          this.props.history.push('/home')       
+          this.setState({valid: true, message:'user logged in'})
+          localStorage.setItem('valid', this.state.valid)       
+          localStorage.setItem('email', this.state.user.email)       
+          localStorage.setItem('password', this.state.user.password)       
+          this.props.history.push('/home')      
         } else {
           this.setState({user: this.state.user, message:res.data.message})
         }
       })
+    }
+
+    logout = () => {
+      this.setState({
+          user: null,
+          message: '',
+          valid: null,
+          newUserName: null,
+          newPassword: null        
+      })
+      localStorage.setItem('valid', false)
+      this.props.history.replace('/')
     }
 
   render() {
@@ -99,7 +126,7 @@ class App extends Component {
     if(this.state.valid) {
       routes = (
         <Switch>
-          <Route path="/home" render={() => <Home/>} />
+          <Route path="/home" render={() => <Home logout={this.logout}/>} />
           <Route path="/create" render={() => <Create onChangeHandler={this.onChangeHandler} onCreate={this.onCreate}/>} />
           <Route path="/change" render={() => <Change newEmail={this.newEmail} newPassword={this.newPassword} onChange={this.onChange}/>} />
           <Route path="/" exact render={() => <Login message={this.state.message} onChangeHandler={this.onChangeHandler} onSubmit={this.onSubmit}/>} />
